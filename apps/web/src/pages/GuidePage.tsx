@@ -11,7 +11,7 @@ import { createPortal } from 'react-dom'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import rehypeRaw from 'rehype-raw'
-import { Download, FileText, X } from 'lucide-react'
+import { Download, FileText, List, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 /** markdown 中这些后缀渲染为可下载块按钮 */
@@ -239,18 +239,18 @@ export function GuidePage() {
   const [preview, setPreview] = useState<{ src: string; alt: string } | null>(
     null,
   )
+  const [mobileTocOpen, setMobileTocOpen] = useState(false)
 
-  const mobileBarRef = useRef<HTMLDivElement>(null)
   const leftNavRef = useRef<HTMLElement>(null)
   const rightNavRef = useRef<HTMLElement>(null)
-  const mobileH1ScrollerRef = useRef<HTMLDivElement>(null)
-  const mobileH2ScrollerRef = useRef<HTMLDivElement>(null)
+  const mobileNavRef = useRef<HTMLElement>(null)
 
   const activeH1IdRef = useRef('')
   const activeH2IdRef = useRef('')
   const lockSpyUntilRef = useRef(0)
 
   const closePreview = useCallback(() => setPreview(null), [])
+  const closeMobileToc = useCallback(() => setMobileTocOpen(false), [])
 
   useEffect(() => {
     fetch('/guide/guide.md')
@@ -276,6 +276,27 @@ export function GuidePage() {
     }
   }, [preview, closePreview])
 
+  // 移动端目录抽屉：锁滚动 + Esc 关闭；切到桌面自动关
+  useEffect(() => {
+    if (!mobileTocOpen) return
+    const prevOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') closeMobileToc()
+    }
+    const mq = window.matchMedia('(min-width: 1024px)')
+    const onMq = () => {
+      if (mq.matches) closeMobileToc()
+    }
+    window.addEventListener('keydown', onKey)
+    mq.addEventListener('change', onMq)
+    return () => {
+      document.body.style.overflow = prevOverflow
+      window.removeEventListener('keydown', onKey)
+      mq.removeEventListener('change', onMq)
+    }
+  }, [mobileTocOpen, closeMobileToc])
+
   const content = useMemo(() => cleanMarkdown(raw), [raw])
   const toc = useMemo(() => extractToc(content), [content])
   const { h1List, h2ByH1, h2Parent } = useMemo(() => buildChapters(toc), [toc])
@@ -285,14 +306,7 @@ export function GuidePage() {
     [activeH1Id, h2ByH1],
   )
 
-  const getScrollOffset = useCallback(() => {
-    const header = 56
-    const bar = mobileBarRef.current
-    if (bar && window.matchMedia('(max-width: 1023px)').matches) {
-      return header + bar.offsetHeight + 12
-    }
-    return 88
-  }, [])
+  const getScrollOffset = useCallback(() => 88, [])
 
   const applyActive = useCallback((h1Id: string, h2Id: string) => {
     if (h1Id !== activeH1IdRef.current) {
@@ -389,8 +403,9 @@ export function GuidePage() {
     (e: MouseEvent<HTMLAnchorElement>, id: string) => {
       e.preventDefault()
       scrollToHeading(id)
+      closeMobileToc()
     },
-    [scrollToHeading],
+    [scrollToHeading, closeMobileToc],
   )
 
   // 页面滚动 → 同步左右高亮
@@ -419,29 +434,28 @@ export function GuidePage() {
     }
   }, [content, h1List, syncActiveFromScroll])
 
-  // 高亮变化 → 左右目录容器内滚到当前项（与正文阅读位置联动）
+  // 高亮变化 → 桌面左右目录 / 移动端抽屉内滚到当前项
   useEffect(() => {
     if (!activeH1Id) return
-    // 桌面左侧
     ensureVisibleInContainer(
       leftNavRef.current,
       leftNavRef.current?.querySelector(`[data-toc-h1="${CSS.escape(activeH1Id)}"]`) ??
         null,
       'y',
     )
-    // 移动端一级横向
-    ensureVisibleInContainer(
-      mobileH1ScrollerRef.current,
-      mobileH1ScrollerRef.current?.querySelector(
-        `[data-toc-h1="${CSS.escape(activeH1Id)}"]`,
-      ) ?? null,
-      'x',
-    )
-  }, [activeH1Id])
+    if (mobileTocOpen) {
+      ensureVisibleInContainer(
+        mobileNavRef.current,
+        mobileNavRef.current?.querySelector(
+          `[data-toc-h1="${CSS.escape(activeH1Id)}"]`,
+        ) ?? null,
+        'y',
+      )
+    }
+  }, [activeH1Id, mobileTocOpen])
 
   useEffect(() => {
     if (!activeH2Id) return
-    // 等右侧列表随 activeH1 重渲后再滚
     const t = window.setTimeout(() => {
       ensureVisibleInContainer(
         rightNavRef.current,
@@ -450,16 +464,18 @@ export function GuidePage() {
         ) ?? null,
         'y',
       )
-      ensureVisibleInContainer(
-        mobileH2ScrollerRef.current,
-        mobileH2ScrollerRef.current?.querySelector(
-          `[data-toc-h2="${CSS.escape(activeH2Id)}"]`,
-        ) ?? null,
-        'x',
-      )
+      if (mobileTocOpen) {
+        ensureVisibleInContainer(
+          mobileNavRef.current,
+          mobileNavRef.current?.querySelector(
+            `[data-toc-h2="${CSS.escape(activeH2Id)}"]`,
+          ) ?? null,
+          'y',
+        )
+      }
     }, 0)
     return () => window.clearTimeout(t)
-  }, [activeH2Id, activeH2List])
+  }, [activeH2Id, activeH2List, mobileTocOpen])
 
   // 初始 hash
   useEffect(() => {
@@ -484,72 +500,13 @@ export function GuidePage() {
     )
   }
 
+  const activeChapterTitle =
+    h1List.find((h) => h.id === activeH1Id)?.text ??
+    activeH2List.find((h) => h.id === activeH2Id)?.text ??
+    '目录'
+
   return (
     <div className="w-full">
-      {/* 移动端目录条 */}
-      <div
-        ref={mobileBarRef}
-        className="lg:hidden sticky top-14 z-30 border-b border-border bg-white/95 backdrop-blur-sm"
-      >
-        <div className="page-shell py-2 space-y-2">
-          <div>
-            <p className="text-[11px] font-medium text-primary mb-1.5">章节</p>
-            <div
-              ref={mobileH1ScrollerRef}
-              className="flex gap-1.5 overflow-x-auto pb-0.5 scrollbar-none"
-            >
-              {h1List.map((item) => (
-                <a
-                  key={item.id}
-                  href={`#${item.id}`}
-                  data-toc-h1={item.id}
-                  onClick={(e) => onTocClick(e, item.id)}
-                  className={cn(
-                    'shrink-0 rounded-md border px-2.5 py-1 text-xs no-underline transition-colors',
-                    activeH1Id === item.id
-                      ? 'border-primary bg-primary text-primary-foreground'
-                      : 'border-border text-black/80 bg-white',
-                  )}
-                >
-                  {item.text}
-                </a>
-              ))}
-            </div>
-          </div>
-
-          <div className="min-h-[2.25rem]">
-            {activeH2List.length > 0 ? (
-              <>
-                <p className="text-[11px] font-medium text-primary mb-1.5">本节</p>
-                <div
-                  ref={mobileH2ScrollerRef}
-                  className="flex gap-1.5 overflow-x-auto pb-0.5 scrollbar-none"
-                >
-                  {activeH2List.map((item) => (
-                    <a
-                      key={item.id}
-                      href={`#${item.id}`}
-                      data-toc-h2={item.id}
-                      onClick={(e) => onTocClick(e, item.id)}
-                      className={cn(
-                        'shrink-0 rounded-md border px-2.5 py-1 text-xs no-underline transition-colors',
-                        activeH2Id === item.id
-                          ? 'border-primary bg-secondary text-primary font-medium'
-                          : 'border-border text-black/80 bg-white',
-                      )}
-                    >
-                      {item.text}
-                    </a>
-                  ))}
-                </div>
-              </>
-            ) : (
-              <p className="text-[11px] text-muted-foreground pt-1">本节无二级标题</p>
-            )}
-          </div>
-        </div>
-      </div>
-
       {/* grid 保证两侧 aside 与正文同高，sticky 目录不会滚出消失 */}
       <div className="page-shell page-section">
         <div className="grid grid-cols-1 lg:grid-cols-[13rem_minmax(0,1fr)_12rem] xl:grid-cols-[14rem_minmax(0,1fr)_13rem] gap-6 xl:gap-8">
@@ -667,6 +624,115 @@ export function GuidePage() {
           </aside>
         </div>
       </div>
+
+      {/* 移动端：浮动打开目录 */}
+      {!mobileTocOpen && (
+        <button
+          type="button"
+          className="lg:hidden fixed bottom-5 right-4 z-40 inline-flex h-11 items-center gap-1.5 rounded-full bg-primary px-4 text-sm font-medium text-primary-foreground shadow-lg shadow-primary/25 active:scale-[0.98] transition"
+          onClick={() => setMobileTocOpen(true)}
+          aria-label="打开目录"
+        >
+          <List className="size-4" aria-hidden />
+          目录
+        </button>
+      )}
+
+      {/* 移动端：可开关侧栏目录 */}
+      {createPortal(
+        <div
+          className={cn(
+            'lg:hidden fixed inset-0 z-50',
+            mobileTocOpen ? 'pointer-events-auto' : 'pointer-events-none',
+          )}
+          aria-hidden={!mobileTocOpen}
+        >
+          <button
+            type="button"
+            className={cn(
+              'absolute inset-0 bg-black/40 transition-opacity duration-200',
+              mobileTocOpen ? 'opacity-100' : 'opacity-0',
+            )}
+            onClick={closeMobileToc}
+            aria-label="关闭目录"
+            tabIndex={mobileTocOpen ? 0 : -1}
+          />
+          <aside
+            className={cn(
+              'absolute inset-y-0 left-0 flex w-[min(18.5rem,86vw)] flex-col bg-card shadow-2xl transition-transform duration-250 ease-out',
+              mobileTocOpen ? 'translate-x-0' : '-translate-x-full',
+            )}
+            role="dialog"
+            aria-modal="true"
+            aria-label="生活指南目录"
+          >
+            <div className="flex items-center justify-between gap-2 border-b border-border px-3 py-3 shrink-0">
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-foreground">目录</p>
+                <p className="text-[11px] text-muted-foreground truncate mt-0.5">
+                  {activeChapterTitle}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={closeMobileToc}
+                className="inline-flex size-9 shrink-0 items-center justify-center rounded-md text-foreground/70 hover:bg-muted hover:text-foreground"
+                aria-label="关闭目录"
+              >
+                <X className="size-5" />
+              </button>
+            </div>
+
+            <nav
+              ref={mobileNavRef}
+              className="flex-1 overflow-y-auto overscroll-contain px-2 py-2"
+            >
+              {h1List.map((h1) => {
+                const children = h2ByH1.get(h1.id) ?? []
+                const h1Active = activeH1Id === h1.id
+                return (
+                  <div key={h1.id} className="mb-1">
+                    <a
+                      href={`#${h1.id}`}
+                      data-toc-h1={h1.id}
+                      onClick={(e) => onTocClick(e, h1.id)}
+                      className={cn(
+                        'flex items-center rounded-md px-2.5 py-2 text-sm no-underline leading-snug transition-colors',
+                        h1Active
+                          ? 'bg-primary text-primary-foreground font-semibold'
+                          : 'text-foreground/85 hover:bg-muted',
+                      )}
+                    >
+                      {h1.text}
+                    </a>
+                    {children.length > 0 ? (
+                      <div className="ml-2 mt-0.5 border-l border-border pl-2 space-y-0.5">
+                        {children.map((h2) => (
+                          <a
+                            key={h2.id}
+                            href={`#${h2.id}`}
+                            data-toc-h2={h2.id}
+                            onClick={(e) => onTocClick(e, h2.id)}
+                            className={cn(
+                              'block rounded-md px-2 py-1.5 text-[13px] no-underline leading-snug transition-colors',
+                              activeH2Id === h2.id
+                                ? 'bg-secondary text-primary font-medium'
+                                : 'text-foreground/70 hover:bg-muted hover:text-foreground',
+                            )}
+                          >
+                            {h2.text}
+                          </a>
+                        ))}
+                      </div>
+                    ) : null}
+                  </div>
+                )
+              })}
+            </nav>
+          </aside>
+        </div>,
+        document.body,
+      )}
 
       {preview &&
         createPortal(

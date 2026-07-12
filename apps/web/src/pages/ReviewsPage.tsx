@@ -1,12 +1,29 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import type { PaginatedReviews, Review, ReviewType, SortMode } from '@hyy/shared'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { api } from '@/lib/utils'
-import { MessageSquare, Plus, ThumbsDown, ThumbsUp } from 'lucide-react'
+import { api, cn } from '@/lib/utils'
+import { MessageSquare, Plus, Search, ThumbsDown, ThumbsUp, X } from 'lucide-react'
+
+const TYPE_OPTIONS: { value: ReviewType; label: string }[] = [
+  { value: 'takeout', label: '外卖' },
+  { value: 'dine_in', label: '聚餐' },
+]
+
+const RATING_OPTIONS: { value: string; label: string }[] = [
+  { value: '', label: '全部' },
+  { value: '好吃', label: '好吃' },
+  { value: '难吃', label: '难吃' },
+]
+
+const SORT_OPTIONS: { value: SortMode; label: string }[] = [
+  { value: 'date', label: '最新' },
+  { value: 'likes', label: '最多赞同' },
+  { value: 'comments', label: '最多评论' },
+]
 
 export function ReviewsPage() {
   const [type, setType] = useState<ReviewType>('takeout')
@@ -42,9 +59,24 @@ export function ReviewsPage() {
     void load()
   }, [load])
 
+  const hasActiveFilters = Boolean(search.trim() || rating || sort !== 'date')
+
+  function clearFilters() {
+    setSearch('')
+    setRating('')
+    setSort('date')
+    setPage(1)
+  }
+
+  function setTypeAndReset(next: ReviewType) {
+    setType(next)
+    setPage(1)
+  }
+
   return (
     <div className="page-shell page-section text-neutral-900">
-      <header className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-5 lg:mb-6">
+      {/* 桌面端页头：保持原样 */}
+      <header className="hidden md:flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-5 lg:mb-6">
         <div className="max-w-2xl">
           <p className="text-xs font-medium tracking-wide text-neutral-500">
             社区评价
@@ -64,14 +96,25 @@ export function ReviewsPage() {
         </Button>
       </header>
 
-      <div className="rounded-lg bg-secondary/80 px-3 py-3 sm:px-4 sm:py-3.5">
+      {/* 移动端页头 */}
+      <header className="md:hidden mb-3">
+        <p className="text-xs font-medium tracking-wide text-neutral-500">
+          社区评价
+        </p>
+        <h1 className="mt-1 text-xl font-semibold tracking-tight text-primary-deep">
+          外卖红黑榜
+        </h1>
+        <p className="mt-1.5 text-xs text-neutral-500 leading-relaxed">
+          外卖、聚餐吃到好的或踩雷的，记一笔，帮同学避雷种草。
+        </p>
+      </header>
+
+      {/* 桌面端工具栏：保持原样 */}
+      <div className="hidden md:block rounded-lg bg-secondary/80 px-3 py-3 sm:px-4 sm:py-3.5">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
           <Tabs
             value={type}
-            onValueChange={(v) => {
-              setType(v as ReviewType)
-              setPage(1)
-            }}
+            onValueChange={(v) => setTypeAndReset(v as ReviewType)}
           >
             <TabsList className="w-auto bg-white/70">
               <TabsTrigger value="takeout">外卖</TabsTrigger>
@@ -117,6 +160,123 @@ export function ReviewsPage() {
         </div>
       </div>
 
+      {/* 移动端工具栏：类型+写评价同一行，再搜索与筛选 */}
+      <div className="md:hidden rounded-xl border border-border/80 bg-secondary/50 p-2.5 space-y-2.5">
+        <div className="flex items-center justify-between gap-2">
+          <div
+            className="inline-flex shrink-0 gap-0.5 rounded-lg bg-white/80 p-0.5 shadow-sm"
+            role="tablist"
+            aria-label="评价类型"
+          >
+            {TYPE_OPTIONS.map((opt) => {
+              const active = type === opt.value
+              return (
+                <button
+                  key={opt.value}
+                  type="button"
+                  role="tab"
+                  aria-selected={active}
+                  onClick={() => setTypeAndReset(opt.value)}
+                  className={cn(
+                    'h-8 rounded-md px-3 text-xs font-medium transition-colors',
+                    active
+                      ? 'bg-primary text-primary-foreground shadow-sm'
+                      : 'text-neutral-600 hover:bg-muted/80 hover:text-primary',
+                  )}
+                >
+                  {opt.label}
+                </button>
+              )
+            })}
+          </div>
+          <Button asChild size="sm" className="h-8 shrink-0 px-2.5 text-xs">
+            <Link to="/reviews/new" className="no-underline">
+              <Plus className="size-3.5" />
+              写评价
+            </Link>
+          </Button>
+        </div>
+
+        <div className="relative">
+          <Search
+            className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-neutral-400"
+            aria-hidden
+          />
+          <Input
+            placeholder="搜索商家…"
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value)
+              setPage(1)
+            }}
+            className="h-10 bg-white border-border pl-9 pr-9"
+            aria-label="搜索商家"
+          />
+          {search ? (
+            <button
+              type="button"
+              onClick={() => {
+                setSearch('')
+                setPage(1)
+              }}
+              className="absolute right-1.5 top-1/2 flex size-7 -translate-y-1/2 items-center justify-center rounded-md text-neutral-400 hover:bg-muted hover:text-neutral-700"
+              aria-label="清除搜索"
+            >
+              <X className="size-3.5" />
+            </button>
+          ) : null}
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <FilterChipRow label="评价" ariaLabel="按评价筛选">
+            {RATING_OPTIONS.map((opt) => (
+              <FilterChip
+                key={opt.value || 'all'}
+                active={rating === opt.value}
+                onClick={() => {
+                  setRating(opt.value)
+                  setPage(1)
+                }}
+                tone={
+                  opt.value === '好吃'
+                    ? 'good'
+                    : opt.value === '难吃'
+                      ? 'bad'
+                      : 'default'
+                }
+              >
+                {opt.label}
+              </FilterChip>
+            ))}
+          </FilterChipRow>
+
+          <FilterChipRow label="排序" ariaLabel="排序方式">
+            {SORT_OPTIONS.map((opt) => (
+              <FilterChip
+                key={opt.value}
+                active={sort === opt.value}
+                onClick={() => {
+                  setSort(opt.value)
+                  setPage(1)
+                }}
+              >
+                {opt.label}
+              </FilterChip>
+            ))}
+          </FilterChipRow>
+
+          {hasActiveFilters ? (
+            <button
+              type="button"
+              onClick={clearFilters}
+              className="self-start text-xs text-neutral-500 hover:text-primary underline-offset-2 hover:underline px-0.5 py-1"
+            >
+              清除筛选
+            </button>
+          ) : null}
+        </div>
+      </div>
+
       <div className="mt-5 lg:mt-6">
         {loading && (
           <p className="text-sm text-neutral-500 py-16 text-center">加载中…</p>
@@ -137,6 +297,15 @@ export function ReviewsPage() {
             {data.reviews.length === 0 ? (
               <div className="border-t border-gray-200 py-16 text-center">
                 <p className="text-sm text-neutral-500">暂无评价</p>
+                {hasActiveFilters ? (
+                  <button
+                    type="button"
+                    onClick={clearFilters}
+                    className="md:hidden mt-3 text-sm text-primary hover:underline"
+                  >
+                    清除筛选再看看
+                  </button>
+                ) : null}
               </div>
             ) : (
               <ul className="grid md:grid-cols-2 gap-x-8 border-t border-gray-200">
@@ -193,6 +362,63 @@ export function ReviewsPage() {
         )}
       </div>
     </div>
+  )
+}
+
+function FilterChipRow({
+  label,
+  ariaLabel,
+  children,
+}: {
+  label: ReactNode
+  ariaLabel: string
+  children: ReactNode
+}) {
+  return (
+    <div className="flex min-w-0 items-center gap-2">
+      <span className="shrink-0 w-7 text-[11px] font-medium text-neutral-500">
+        {label}
+      </span>
+      <div
+        className="flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto scrollbar-none -mx-0.5 px-0.5"
+        role="group"
+        aria-label={ariaLabel}
+      >
+        {children}
+      </div>
+    </div>
+  )
+}
+
+function FilterChip({
+  active,
+  onClick,
+  children,
+  tone = 'default',
+}: {
+  active: boolean
+  onClick: () => void
+  children: ReactNode
+  tone?: 'default' | 'good' | 'bad'
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        'h-8 shrink-0 rounded-full px-3 text-xs font-medium transition-colors',
+        'border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+        active
+          ? tone === 'good'
+            ? 'border-good/30 bg-good/10 text-good'
+            : tone === 'bad'
+              ? 'border-bad/30 bg-bad/10 text-bad'
+              : 'border-primary/25 bg-primary text-primary-foreground'
+          : 'border-transparent bg-white text-neutral-600 hover:bg-muted hover:text-neutral-900',
+      )}
+    >
+      {children}
+    </button>
   )
 }
 

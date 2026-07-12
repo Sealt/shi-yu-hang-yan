@@ -135,10 +135,10 @@ export function Layout() {
       </main>
 
       <footer className="mt-auto bg-secondary/40">
-        <div className="page-shell py-6 lg:py-8 flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+        <div className="page-shell py-6 lg:py-8 flex flex-col items-center gap-6 text-center sm:flex-row sm:items-center sm:justify-between sm:text-left">
           <div className="min-w-0">
             <p className="text-xs font-medium text-muted-foreground mb-2.5">常用链接</p>
-            <ul className="flex flex-wrap gap-x-5 gap-y-2 text-sm">
+            <ul className="flex flex-wrap justify-center gap-x-5 gap-y-2 text-sm sm:justify-start">
               {usefulLinks.map((link) => (
                 <li key={link.href}>
                   <a
@@ -154,10 +154,10 @@ export function Layout() {
             </ul>
           </div>
 
-          <div className="flex items-center justify-end gap-0 sm:shrink-0">
+          <div className="flex items-center justify-center gap-0 sm:shrink-0 sm:justify-end">
             <Link
               to="/"
-              className="group inline-flex flex-col items-end gap-1 no-underline min-w-0 text-right pr-5 sm:pr-6"
+              className="group inline-flex flex-col items-center gap-1 no-underline min-w-0 text-center pr-5 sm:items-end sm:text-right sm:pr-6"
             >
               <span className="text-base font-semibold tracking-wide text-foreground group-hover:text-primary transition-colors">
                 {SITE_NAME}

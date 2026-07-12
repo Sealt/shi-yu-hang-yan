@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, type ReactNode } from 'react'
 import {
   ALL_STORES,
   LOW_PRICE_LIMIT,
@@ -10,6 +10,13 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
+import { Search, X } from 'lucide-react'
+
+const SORT_OPTIONS: { value: SortMode; label: string }[] = [
+  { value: 'default', label: '默认' },
+  { value: 'priceAsc', label: '价格升序' },
+  { value: 'priceDesc', label: '价格降序' },
+]
 
 function parsePriceNumbers(price: string): number[] {
   const matches = price.match(/(\d+(?:\.\d+)?)/g)
@@ -94,16 +101,33 @@ export function EatPage() {
     0,
   )
 
+  const hasActiveFilters =
+    Boolean(query.trim()) || lowPriceOnly || sortMode !== 'default' || store !== ALL_STORES
+
+  function clearFilters() {
+    setQuery('')
+    setSortMode('default')
+    setLowPriceOnly(false)
+    setStore(ALL_STORES)
+  }
+
+  const statsLine = (
+    <>
+      {menuData.length} 家店铺 · {allItemCount} 道菜品
+      {shownCount !== allItemCount ? ` · 当前 ${shownCount} 道` : ''}
+    </>
+  )
+
   return (
     <div className="page-shell page-section">
-      <header className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      {/* 桌面端：保持原布局 */}
+      <header className="mb-3 hidden md:flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0 shrink-0">
           <h1 className="text-xl lg:text-2xl font-semibold tracking-tight text-primary-deep leading-tight">
             吃在杭研
           </h1>
           <p className="mt-0.5 text-xs sm:text-sm text-muted-foreground leading-snug">
-            {menuData.length} 家店铺 · {allItemCount} 道菜品
-            {shownCount !== allItemCount ? ` · 当前 ${shownCount} 道` : ''}
+            {statsLine}
           </p>
         </div>
 
@@ -135,26 +159,119 @@ export function EatPage() {
         </div>
       </header>
 
-      <div className="flex flex-wrap gap-1.5">
+      <div className="mb-3 hidden md:flex flex-wrap gap-1.5">
         {stores.map((name) => (
-          <button
+          <StoreChip
             key={name}
-            type="button"
+            name={name}
+            active={store === name}
             onClick={() => setStore(name)}
+          />
+        ))}
+      </div>
+
+      {/* 移动端：标题 + 独立工具栏，避免控件挤在一行重叠 */}
+      <header className="md:hidden mb-3">
+        <h1 className="text-xl font-semibold tracking-tight text-primary-deep leading-tight">
+          吃在杭研
+        </h1>
+        <p className="mt-0.5 text-xs text-muted-foreground leading-snug">{statsLine}</p>
+      </header>
+
+      <div className="md:hidden rounded-xl border border-border/80 bg-secondary/50 p-2.5 space-y-2.5 mb-3">
+        <div className="relative">
+          <Search
+            className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-neutral-400"
+            aria-hidden
+          />
+          <Input
+            placeholder="搜索菜品…"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            className="h-10 bg-white border-border pl-9 pr-9"
+            aria-label="搜索菜品"
+          />
+          {query ? (
+            <button
+              type="button"
+              onClick={() => setQuery('')}
+              className="absolute right-1.5 top-1/2 flex size-7 -translate-y-1/2 items-center justify-center rounded-md text-neutral-400 hover:bg-muted hover:text-neutral-700"
+              aria-label="清除搜索"
+            >
+              <X className="size-3.5" />
+            </button>
+          ) : null}
+        </div>
+
+        <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="排序与筛选">
+          <span className="shrink-0 text-[11px] font-medium text-neutral-500 mr-0.5">
+            排序
+          </span>
+          {SORT_OPTIONS.map((opt) => (
+            <FilterChip
+              key={opt.value}
+              active={sortMode === opt.value}
+              onClick={() => setSortMode(opt.value)}
+            >
+              {opt.label}
+            </FilterChip>
+          ))}
+          <button
+            type="button"
+            onClick={() => setLowPriceOnly((v) => !v)}
             className={cn(
-              'px-2.5 py-1 text-xs rounded-md transition-colors',
-              store === name
-                ? 'bg-primary text-primary-foreground font-medium'
-                : 'bg-gray-100 text-black hover:bg-gray-200',
+              'h-8 shrink-0 rounded-full px-3 text-xs font-medium border transition-colors',
+              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+              lowPriceOnly
+                ? 'border-primary/25 bg-primary text-primary-foreground'
+                : 'border-transparent bg-white text-neutral-600',
             )}
+            aria-pressed={lowPriceOnly}
           >
-            {name}
+            ≤¥{LOW_PRICE_LIMIT}
           </button>
+        </div>
+
+        {hasActiveFilters ? (
+          <button
+            type="button"
+            onClick={clearFilters}
+            className="text-xs text-neutral-500 hover:text-primary underline-offset-2 hover:underline px-0.5 py-0.5"
+          >
+            清除筛选
+          </button>
+        ) : null}
+      </div>
+
+      {/* 移动端店铺：换行排布，不横向滑动 */}
+      <div
+        className="md:hidden mb-3 flex flex-wrap gap-1.5"
+        role="group"
+        aria-label="选择店铺"
+      >
+        {stores.map((name) => (
+          <StoreChip
+            key={name}
+            name={name}
+            active={store === name}
+            onClick={() => setStore(name)}
+          />
         ))}
       </div>
 
       {filtered.length === 0 ? (
-        <p className="text-sm text-muted-foreground py-10 text-center">没有匹配的菜品</p>
+        <div className="py-10 text-center">
+          <p className="text-sm text-muted-foreground">没有匹配的菜品</p>
+          {hasActiveFilters ? (
+            <button
+              type="button"
+              onClick={clearFilters}
+              className="md:hidden mt-3 text-sm text-primary hover:underline"
+            >
+              清除筛选再看看
+            </button>
+          ) : null}
+        </div>
       ) : (
         <div className="mt-4 flex flex-col gap-5">
           {filtered.map((s) => {
@@ -227,5 +344,59 @@ export function EatPage() {
         </div>
       )}
     </div>
+  )
+}
+
+function StoreChip({
+  name,
+  active,
+  onClick,
+  className,
+}: {
+  name: string
+  active: boolean
+  onClick: () => void
+  className?: string
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        'px-2.5 py-1 text-xs rounded-md transition-colors',
+        active
+          ? 'bg-primary text-primary-foreground font-medium'
+          : 'bg-gray-100 text-black hover:bg-gray-200',
+        className,
+      )}
+    >
+      {name}
+    </button>
+  )
+}
+
+function FilterChip({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean
+  onClick: () => void
+  children: ReactNode
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        'h-8 shrink-0 rounded-full px-3 text-xs font-medium transition-colors',
+        'border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+        active
+          ? 'border-primary/25 bg-primary text-primary-foreground'
+          : 'border-transparent bg-white text-neutral-600 hover:bg-muted hover:text-neutral-900',
+      )}
+    >
+      {children}
+    </button>
   )
 }
