@@ -1,6 +1,9 @@
 <p align="center">
   <img src="apps/web/public/logored.png" alt="诗语杭研" width="320" />
-  <p>面向 [西安电子科技大学杭州研究院](https://hz.xidian.edu.cn/) 同学的一站式校园生活指南。</p>
+</p>
+
+<p align="center">
+  面向 <a href="https://hz.xidian.edu.cn/">西安电子科技大学杭州研究院</a> 同学的一站式校园生活指南。
 </p>
 
 ---
