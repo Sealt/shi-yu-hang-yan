@@ -1,4 +1,4 @@
-import { BookOpen, Home, Menu, UtensilsCrossed, ThumbsUp, X } from 'lucide-react'
+import { BookOpen, Github, Home, Menu, UtensilsCrossed, ThumbsUp, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { cn } from '@/lib/utils'
@@ -20,6 +20,8 @@ const nav = [
   { to: '/eat', label: '吃在杭研', icon: UtensilsCrossed },
   { to: '/reviews', label: '外卖红黑榜', icon: ThumbsUp },
 ]
+
+const GITHUB_URL = 'https://github.com/Sealt/shi-yu-hang-yan'
 
 const usefulLinks = [
   { label: '西电主页', href: 'https://www.xidian.edu.cn/' },
@@ -133,8 +135,8 @@ export function Layout() {
       </main>
 
       <footer className="mt-auto bg-secondary/40">
-        <div className="page-shell py-6 lg:py-8 flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
-          <div>
+        <div className="page-shell py-6 lg:py-8 flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
             <p className="text-xs font-medium text-muted-foreground mb-2.5">常用链接</p>
             <ul className="flex flex-wrap gap-x-5 gap-y-2 text-sm">
               {usefulLinks.map((link) => (
@@ -152,10 +154,10 @@ export function Layout() {
             </ul>
           </div>
 
-          <div className="sm:text-right sm:shrink-0">
+          <div className="flex items-center justify-end gap-0 sm:shrink-0">
             <Link
               to="/"
-              className="group inline-flex flex-col sm:items-end gap-1 no-underline"
+              className="group inline-flex flex-col items-end gap-1 no-underline min-w-0 text-right pr-5 sm:pr-6"
             >
               <span className="text-base font-semibold tracking-wide text-foreground group-hover:text-primary transition-colors">
                 {SITE_NAME}
@@ -164,6 +166,16 @@ export function Layout() {
                 {SITE_SLOGAN}
               </span>
             </Link>
+            <a
+              href={GITHUB_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 pl-5 sm:pl-6 border-l border-border text-sm text-foreground/80 no-underline hover:text-primary transition-colors shrink-0"
+              aria-label="在 GitHub 上查看诗语杭研源码"
+            >
+              <Github className="size-4" aria-hidden />
+              GitHub
+            </a>
           </div>
         </div>
       </footer>
