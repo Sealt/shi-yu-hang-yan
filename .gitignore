@@ -10,7 +10,10 @@ apps/server/data/*.db-*
 !apps/server/data/.gitkeep
 data/*.db
 data/*.db-*
+deploy-data/
 apps/web/dist
 apps/web/public/guide/Images_attachments/**
 !apps/web/public/guide/Images_attachments/.gitkeep
 *.tsbuildinfo
+._*
+

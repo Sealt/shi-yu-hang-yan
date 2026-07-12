@@ -1,0 +1,23 @@
+services:
+  api:
+    image: shiyuhangyan-api:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: shiyuhangyan-api
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3000:3000"
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin123}
+      DATABASE_PATH: /data/hangyan.db
+    volumes:
+      - ./deploy-data:/data
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
