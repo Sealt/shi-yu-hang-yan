@@ -1,0 +1,476 @@
+/**
+ * 仅作用于生活指南 Markdown 正文。
+ * 样式对齐 theme.css（Obsidian Border）的 markdown-rendered 阅读视图。
+ * 作用域：.markdown-rendered
+ */
+
+.markdown-rendered {
+  /* —— 从 theme-light / Border 抽取的阅读 token —— */
+  /* --md-accent-h/s/l 由页面主题（西电蓝 / 西电红）在 :root 上提供 */
+  --md-accent: hsl(var(--md-accent-h), var(--md-accent-s), var(--md-accent-l));
+  --md-accent-1: hsl(
+    calc(var(--md-accent-h) - 1),
+    calc(var(--md-accent-s) * 1.01),
+    calc(var(--md-accent-l) * 1.075)
+  );
+  --md-accent-2: hsl(
+    calc(var(--md-accent-h) - 3),
+    calc(var(--md-accent-s) * 1.02),
+    calc(var(--md-accent-l) * 1.15)
+  );
+  --md-accent-hsl: var(--md-accent-h), var(--md-accent-s), var(--md-accent-l);
+
+  --md-text: hsl(var(--md-accent-h), 6%, 12%);
+  --md-text-muted: hsl(var(--md-accent-h), 9%, 36%);
+  --md-text-faint: hsl(var(--md-accent-h), 12%, 64%);
+
+  --md-bg: #ffffff;
+  --md-bg-secondary: hsl(
+    var(--md-accent-h),
+    calc(var(--md-accent-s) / 6),
+    calc(100% - (100% - var(--md-accent-l)) / 16)
+  );
+  --md-border: hsla(
+    var(--md-accent-h),
+    calc(0.4 * var(--md-accent-s)),
+    var(--md-accent-l),
+    0.2
+  );
+  --md-border-muted: hsla(
+    var(--md-accent-h),
+    calc(0.4 * var(--md-accent-s)),
+    var(--md-accent-l),
+    0.1
+  );
+  --md-hover: hsla(var(--md-accent-h), 6%, 64%, 0.15);
+
+  --md-red: rgb(221, 44, 56);
+  --md-orange: rgb(222, 116, 23);
+  --md-yellow: rgb(192, 156, 12);
+  --md-green: rgb(29, 165, 29);
+  --md-blue: rgb(23, 117, 217);
+  --md-purple: rgb(143, 71, 225);
+  --md-cyan: rgb(22, 166, 171);
+
+  --h1-accent-color: var(--md-red);
+  --h2-accent-color: var(--md-orange);
+  --h3-accent-color: var(--md-yellow);
+  --h4-accent-color: var(--md-green);
+  --h5-accent-color: var(--md-blue);
+  --h6-accent-color: var(--md-purple);
+
+  --h1-size: 1.5em;
+  --h2-size: 1.425em;
+  --h3-size: 1.35em;
+  --h4-size: 1.275em;
+  --h5-size: 1.2em;
+  --h6-size: 1.125em;
+  --h1-weight: 700;
+  --h2-weight: 675;
+  --h3-weight: 650;
+  --h4-weight: 625;
+  --h5-weight: 600;
+  --h6-weight: 575;
+  --h1-line-height: 1.2;
+  --h2-line-height: 1.2;
+  --h3-line-height: 1.3;
+  --h4-line-height: 1.4;
+
+  --blockquote-border-thickness: 3px;
+  --blockquote-border-color: var(--md-accent);
+  --blockquote-padding: 8px;
+  --radius-s: 4px;
+  --radius-m: 6px;
+
+  --table-border-color: var(--md-border);
+  --table-header-border-color: var(--md-border);
+  --table-header-color: var(--md-text);
+  --table-header-weight: 600;
+  --table-header-size: inherit;
+  --table-text-size: 0.9em;
+  --table-white-space: normal;
+  --table-cell-padding: 4px 10px;
+
+  color: var(--md-text);
+  font-size: 16px;
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+.markdown-rendered > *:first-child {
+  margin-top: 0;
+}
+
+/* —— 标题：尺寸/字重 + 左侧色条指示（Border heading-indicator） —— */
+.markdown-rendered :is(h1, h2, h3, h4, h5, h6) {
+  position: relative;
+  color: var(--md-text);
+  margin-top: 1.6em;
+  margin-bottom: 0.55em;
+  text-indent: 9px;
+  scroll-margin-top: 6rem;
+}
+
+@media (max-width: 1023px) {
+  .markdown-rendered :is(h1, h2, h3, h4, h5, h6) {
+    scroll-margin-top: 11rem;
+  }
+}
+
+.markdown-rendered h1 {
+  font-size: var(--h1-size);
+  font-weight: var(--h1-weight);
+  line-height: var(--h1-line-height);
+}
+.markdown-rendered h2 {
+  font-size: var(--h2-size);
+  font-weight: var(--h2-weight);
+  line-height: var(--h2-line-height);
+}
+.markdown-rendered h3 {
+  font-size: var(--h3-size);
+  font-weight: var(--h3-weight);
+  line-height: var(--h3-line-height);
+}
+.markdown-rendered h4 {
+  font-size: var(--h4-size);
+  font-weight: var(--h4-weight);
+  line-height: var(--h4-line-height);
+}
+.markdown-rendered h5 {
+  font-size: var(--h5-size);
+  font-weight: var(--h5-weight);
+}
+.markdown-rendered h6 {
+  font-size: var(--h6-size);
+  font-weight: var(--h6-weight);
+  color: var(--md-text-muted);
+}
+
+.markdown-rendered h1::before,
+.markdown-rendered h2::before,
+.markdown-rendered h3::before,
+.markdown-rendered h4::before,
+.markdown-rendered h5::before,
+.markdown-rendered h6::before {
+  content: " ";
+  display: inline-block;
+  width: 3px;
+  border-radius: var(--radius-m);
+  position: absolute;
+  left: 0;
+  top: 4px;
+}
+
+.markdown-rendered h1::before {
+  height: calc(1.2em - 8px);
+  background-color: var(--h1-accent-color);
+}
+.markdown-rendered h2::before {
+  height: calc(1.2em - 8px);
+  background-color: var(--h2-accent-color);
+}
+.markdown-rendered h3::before {
+  height: calc(1.3em - 8px);
+  background-color: var(--h3-accent-color);
+}
+.markdown-rendered h4::before {
+  height: calc(1.4em - 8px);
+  background-color: var(--h4-accent-color);
+}
+.markdown-rendered h5::before {
+  height: calc(1.4em - 8px);
+  background-color: var(--h5-accent-color);
+}
+.markdown-rendered h6::before {
+  height: calc(1.4em - 8px);
+  background-color: var(--h6-accent-color);
+}
+
+/* —— 段落 / 列表 —— */
+.markdown-rendered p {
+  margin: 0.85em 0;
+  line-height: 1.65;
+}
+
+.markdown-rendered ul,
+.markdown-rendered ol {
+  margin: 0.75em 0;
+  padding-inline-start: 1.6em;
+}
+
+.markdown-rendered li {
+  margin: 0.3em 0;
+  line-height: 1.6;
+}
+
+.markdown-rendered li > ul,
+.markdown-rendered li > ol {
+  margin: 0.25em 0;
+}
+
+.markdown-rendered ul {
+  list-style-type: disc;
+}
+
+.markdown-rendered ul ul {
+  list-style-type: circle;
+}
+
+.markdown-rendered ol {
+  list-style-type: decimal;
+}
+
+.markdown-rendered ::marker {
+  color: var(--md-accent);
+}
+
+/* —— 链接（Border：外链偏蓝 + hover 底） —— */
+.markdown-rendered a {
+  color: var(--md-blue);
+  text-decoration: none;
+  text-underline-offset: 2px;
+  border-radius: var(--radius-s);
+  transition: background-color 0.12s ease, color 0.12s ease;
+}
+
+.markdown-rendered a:hover {
+  color: var(--md-blue);
+  background-color: var(--md-hover);
+  text-decoration: underline;
+}
+
+/* —— 强调 —— */
+.markdown-rendered strong {
+  font-weight: 650;
+  color: var(--md-text);
+}
+
+.markdown-rendered em {
+  font-style: italic;
+  color: var(--md-text);
+}
+
+.markdown-rendered del {
+  color: var(--md-text-muted);
+  text-decoration: line-through;
+}
+
+.markdown-rendered mark {
+  background: rgba(255, 208, 0, 0.4);
+  border-radius: 2px;
+  padding: 0 0.15em;
+}
+
+/* —— 引用块（Border blockquotes） —— */
+.markdown-rendered blockquote {
+  position: relative;
+  margin: 1em 0;
+  border: none;
+  border-radius: var(--radius-s);
+  border-inline-start: var(--blockquote-border-thickness) solid
+    var(--blockquote-border-color);
+  padding: var(--blockquote-padding)
+    calc(12px + var(--blockquote-border-thickness));
+  background-color: var(--md-bg-secondary);
+  color: var(--md-text-muted);
+  font-style: normal;
+}
+
+.markdown-rendered blockquote p {
+  margin: 0.4em 0;
+}
+
+.markdown-rendered blockquote > blockquote {
+  margin-top: 0.5em;
+}
+
+/* —— 代码 —— */
+.markdown-rendered code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.9em;
+  color: var(--md-text);
+  background: var(--md-bg-secondary);
+  border: 1px solid var(--md-border-muted);
+  border-radius: var(--radius-s);
+  padding: 0.12em 0.4em;
+}
+
+.markdown-rendered pre {
+  margin: 1em 0;
+  padding: 0.9em 1em;
+  overflow-x: auto;
+  border-radius: 8px;
+  border: 1px solid var(--md-border);
+  background: var(--md-bg-secondary);
+  line-height: 1.5;
+}
+
+.markdown-rendered pre code {
+  background: transparent;
+  border: none;
+  padding: 0;
+  font-size: 0.875em;
+  color: var(--md-text);
+}
+
+/* —— 表格 —— */
+.markdown-rendered table {
+  width: 100% !important;
+  max-width: 100%;
+  border-collapse: collapse;
+  margin-block: 1em;
+  margin-inline: 0;
+  font-size: var(--table-text-size);
+  table-layout: auto;
+  border: 1px solid var(--table-border-color);
+  background: transparent;
+}
+
+.markdown-rendered thead tr {
+  background: transparent;
+}
+
+.markdown-rendered th,
+.markdown-rendered td {
+  border: 1px solid var(--table-border-color);
+  padding: var(--table-cell-padding);
+  text-align: start;
+  vertical-align: top;
+  white-space: var(--table-white-space);
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  background-color: transparent;
+}
+
+.markdown-rendered th {
+  font-weight: var(--table-header-weight);
+  font-size: var(--table-header-size);
+  color: var(--table-header-color);
+  border-color: var(--table-header-border-color);
+}
+
+/* —— 分割线 —— */
+.markdown-rendered hr {
+  border: none;
+  height: 1px;
+  margin: 1.75em 0;
+  background: linear-gradient(
+    to right,
+    transparent,
+    var(--md-border) 15%,
+    var(--md-border) 85%,
+    transparent
+  );
+}
+
+/* —— 图片 —— */
+.markdown-rendered img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  border: 1px solid var(--md-border);
+  margin: 0.75em 0;
+  display: block;
+}
+
+.markdown-rendered button:has(> img) {
+  margin: 0.75em 0;
+  max-width: 100%;
+}
+
+.markdown-rendered button:has(> img) img {
+  margin: 0;
+}
+
+/* —— 附件下载块（pdf / docx / pptx 等） —— */
+.markdown-rendered .md-file-download {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  margin: 0.65em 0;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid var(--md-border);
+  border-radius: 8px;
+  background: var(--md-bg-secondary);
+  color: var(--md-text);
+  text-decoration: none !important;
+  box-sizing: border-box;
+  transition:
+    background-color 0.12s ease,
+    border-color 0.12s ease,
+    box-shadow 0.12s ease;
+}
+
+.markdown-rendered .md-file-download:hover {
+  background: color-mix(in srgb, var(--md-accent) 8%, white);
+  border-color: color-mix(in srgb, var(--md-accent) 35%, var(--md-border));
+  box-shadow: 0 1px 4px color-mix(in srgb, var(--md-accent) 12%, transparent);
+  color: var(--md-text);
+}
+
+.markdown-rendered .md-file-download__icon {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--md-accent) 12%, white);
+  color: var(--md-accent);
+}
+
+.markdown-rendered .md-file-download__body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.markdown-rendered .md-file-download__name {
+  font-size: 0.925em;
+  font-weight: 600;
+  line-height: 1.35;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.markdown-rendered .md-file-download__meta {
+  font-size: 0.75em;
+  color: var(--md-text-muted);
+  line-height: 1.3;
+}
+
+.markdown-rendered .md-file-download__action {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 999px;
+  color: var(--md-accent);
+  background: color-mix(in srgb, var(--md-accent) 10%, white);
+}
+
+.markdown-rendered p:has(> .md-file-download:only-child) {
+  margin: 0;
+}
+
+/* —— 任务列表 —— */
+.markdown-rendered input[type="checkbox"] {
+  accent-color: var(--md-accent);
+  margin-right: 0.4em;
+  transform: translateY(1px);
+}
+
+/* —— 脚注风格小字 —— */
+.markdown-rendered small,
+.markdown-rendered figcaption {
+  color: var(--md-text-faint);
+  font-size: 0.875em;
+}

@@ -1,0 +1,127 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+/* Markdown 正文（theme.css / Border）— 仅 .markdown-rendered */
+@import "./styles/markdown-border.css";
+
+@theme {
+  --font-sans: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei",
+    system-ui, -apple-system, sans-serif;
+
+  /* 默认：西电红 rgb(175, 33, 37) — 运行时由 data-theme 覆盖 */
+  --color-background: #ffffff;
+  --color-foreground: rgb(80, 20, 22);
+  --color-muted: #faf0f0;
+  --color-muted-foreground: rgb(145, 75, 78);
+  --color-border: #e8c8c9;
+  --color-input: #e8c8c9;
+  --color-ring: rgb(175, 33, 37);
+  --color-primary: rgb(175, 33, 37);
+  --color-primary-foreground: #ffffff;
+  --color-secondary: #f7e8e9;
+  --color-secondary-foreground: rgb(80, 20, 22);
+  --color-accent: #f7e8e9;
+  --color-accent-foreground: rgb(80, 20, 22);
+  --color-destructive: #c62828;
+  --color-destructive-foreground: #ffffff;
+  --color-card: #ffffff;
+  --color-card-foreground: rgb(80, 20, 22);
+  --color-good: #0d7a45;
+  --color-bad: #c62828;
+  --color-brand-soft: #f7e8e9;
+  --color-primary-deep: rgb(130, 22, 26);
+
+  --radius-sm: 0.25rem;
+  --radius-md: 0.375rem;
+  --radius-lg: 0.5rem;
+
+  --container-page: 72rem;
+}
+
+/* 西电红 — 主色 rgb(175, 33, 37)（默认） */
+:root,
+[data-theme="red"] {
+  --color-background: #ffffff;
+  --color-foreground: rgb(80, 20, 22);
+  --color-muted: #faf0f0;
+  --color-muted-foreground: rgb(145, 75, 78);
+  --color-border: #e8c8c9;
+  --color-input: #e8c8c9;
+  --color-ring: rgb(175, 33, 37);
+  --color-primary: rgb(175, 33, 37);
+  --color-primary-foreground: #ffffff;
+  --color-secondary: #f7e8e9;
+  --color-secondary-foreground: rgb(80, 20, 22);
+  --color-accent: #f7e8e9;
+  --color-accent-foreground: rgb(80, 20, 22);
+  --color-card-foreground: rgb(80, 20, 22);
+  --color-brand-soft: #f7e8e9;
+  --color-primary-deep: rgb(130, 22, 26);
+
+  --md-accent-h: 358;
+  --md-accent-s: 68%;
+  --md-accent-l: 41%;
+}
+
+/* 西电蓝 — 主色 rgb(0, 65, 130) */
+[data-theme="blue"] {
+  --color-background: #ffffff;
+  --color-foreground: rgb(0, 40, 80);
+  --color-muted: #eef3f9;
+  --color-muted-foreground: rgb(60, 100, 145);
+  --color-border: #c5d5e8;
+  --color-input: #c5d5e8;
+  --color-ring: rgb(0, 65, 130);
+  --color-primary: rgb(0, 65, 130);
+  --color-primary-foreground: #ffffff;
+  --color-secondary: #e6eef7;
+  --color-secondary-foreground: rgb(0, 40, 80);
+  --color-accent: #e6eef7;
+  --color-accent-foreground: rgb(0, 40, 80);
+  --color-card-foreground: rgb(0, 40, 80);
+  --color-brand-soft: #e6eef7;
+  --color-primary-deep: rgb(0, 45, 95);
+
+  --md-accent-h: 210;
+  --md-accent-s: 100%;
+  --md-accent-l: 25%;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    @apply scroll-smooth antialiased;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans text-[15px] leading-relaxed md:text-base;
+    margin: 0;
+  }
+
+  a {
+    @apply text-primary underline-offset-2;
+  }
+
+  ::selection {
+    background: color-mix(in srgb, var(--color-primary) 22%, white);
+    color: var(--color-foreground);
+  }
+}
+
+.page-shell {
+  @apply mx-auto w-full max-w-[72rem] px-4 sm:px-6 lg:px-8;
+}
+
+.page-section {
+  @apply py-6 sm:py-8 lg:py-10;
+}
+
+.scrollbar-none {
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}

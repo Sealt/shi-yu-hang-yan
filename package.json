@@ -1,0 +1,18 @@
+{
+  "name": "shi-yu-hang-yan",
+  "private": true,
+  "version": "1.0.0",
+  "description": "诗语杭研 — 生活指南 · 吃在杭研 · 外卖红黑榜",
+  "scripts": {
+    "dev": "pnpm -r --parallel --filter @hyy/server --filter @hyy/web dev",
+    "dev:web": "pnpm --filter @hyy/web dev",
+    "dev:server": "pnpm --filter @hyy/server dev",
+    "build": "pnpm --filter @hyy/shared build && pnpm --filter @hyy/server build && pnpm --filter @hyy/web build",
+    "start": "pnpm --filter @hyy/server start",
+    "lint": "pnpm -r lint"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "packageManager": "pnpm@11.11.0"
+}

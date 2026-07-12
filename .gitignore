@@ -1,0 +1,16 @@
+node_modules
+dist
+.turbo
+*.log
+.DS_Store
+.env
+.env.local
+apps/server/data/*.db
+apps/server/data/*.db-*
+!apps/server/data/.gitkeep
+data/*.db
+data/*.db-*
+apps/web/dist
+apps/web/public/guide/Images_attachments/**
+!apps/web/public/guide/Images_attachments/.gitkeep
+*.tsbuildinfo
